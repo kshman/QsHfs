@@ -110,6 +110,7 @@ internal static class ExtensionSupp
 		{ ".yaml", Hfs.FileType.DataText },
 		{ ".yml", Hfs.FileType.DataText },
 		{ ".zip", Hfs.FileType.Archive },
+		{ ".iso", Hfs.FileType.Archive }
 	};
 
 	public static Hfs.FileType GetType(string filename)

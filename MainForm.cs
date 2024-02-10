@@ -6,7 +6,7 @@ public partial class MainForm : Form
 	private string _last_directory = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
 	private string _last_extract = string.Empty;
 
-	private QsHfs? _hfs = null;
+	private QnHfs? _hfs = null;
 	private List<string> _history = [];
 
 	public MainForm()
@@ -81,6 +81,11 @@ public partial class MainForm : Form
 			case Keys.Enter:
 				ExecFiles();
 				break;
+
+			case Keys.D0:
+				if (e.Control)
+					Optimize();
+				break;
 		}
 
 		_escape = false;
@@ -113,7 +118,7 @@ public partial class MainForm : Form
 
 	private void BtnHfsOptimize_Click(object sender, EventArgs e)
 	{
-
+		Optimize();
 	}
 
 	private void ListFiles_DragEnter(object sender, DragEventArgs e)
@@ -272,7 +277,7 @@ public partial class MainForm : Form
 		try
 		{
 			_hfs?.Close();
-			_hfs = new QsHfs(filename, create);
+			_hfs = new QnHfs(filename, create);
 		}
 		catch (Exception ex)
 		{
@@ -324,7 +329,7 @@ public partial class MainForm : Form
 			return;
 		}
 
-		Text = $"QsHfs <{_hfs.CurrentDirectory}>";
+		Text = $"QsHfs - \"{_hfs.Name}\" <{_hfs.CurrentDirectory}>";
 		var files = _hfs.GetFiles();
 
 		ListFiles.BeginUpdate();
@@ -511,7 +516,7 @@ public partial class MainForm : Form
 			File.WriteAllBytes(path, data);
 			success.Add(file.name);
 		}
-		if (failed.Count>0)
+		if (failed.Count > 0)
 			MesgBox.Show(this, "파일 풀기", $"{failed.Count}개 파일 풀기 실패", failed, MessageBoxIcon.Error);
 		MesgBox.Show(this, "파일 풀기", $"{success.Count}개 파일 풀기 완료", success, MessageBoxIcon.Information);
 	}
@@ -533,7 +538,47 @@ public partial class MainForm : Form
 
 		UpdateFiles();
 		if (failed.Count > 0)
-			MesgBox.Show(this, "파일 저장", $"{failed.Count}개 파일 저장 실패", failed, MessageBoxIcon.Error);
-		MesgBox.Show(this, "파일 저장", $"{success.Count}개 파일 저장 완료", success, MessageBoxIcon.Information);
+			MesgBox.ShowCenter("파일 저장", $"{failed.Count}개 파일 저장 실패", failed, MessageBoxIcon.Error);
+		MesgBox.ShowCenter("파일 저장", $"{success.Count}개 파일 저장 완료", success, MessageBoxIcon.Information);
+	}
+
+	//
+	private void OptimizeCallback(Hfs.OptimizeData data)
+	{
+		LabelInfo.Text = $"진행중... {data.FileName} ({data.Count} : {data.Stack}";
+		Thread.Sleep(10);
+	}
+
+	//
+	private void Optimize()
+	{
+		if (_hfs == null)
+			return;
+
+		var dlg = new OpenFileDialog()
+		{
+			Title = "HFS 최적화",
+			Filter = "HFS 파일 (*.hfs)|*.hfs|모든 파일 (*.*)|*.*",
+			FilterIndex = 1,
+			RestoreDirectory = true,
+			CheckFileExists = false,
+			CheckPathExists = false,
+			ShowReadOnly = false,
+			ReadOnlyChecked = false,
+			ShowHelp = false,
+			InitialDirectory = _last_directory,
+		};
+
+		if (dlg.ShowDialog() != DialogResult.OK)
+			return;
+
+		LabelInfo.Text = "최적화 중...";
+		LabelInfo.Visible = true;
+		Enabled = false;
+		_hfs.Optimize(dlg.FileName, OptimizeCallback);
+		Enabled = true;
+		LabelInfo.Visible = false;
+
+		MesgBox.Show(this, "HFS 최적화", "최적화가 끝났어요!", MessageBoxIcon.Information);
 	}
 }

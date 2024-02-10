@@ -45,6 +45,7 @@ partial class MainForm
 		BtnMkDir = new Button();
 		BtnOpenHfs = new Button();
 		BtnNewHfs = new Button();
+		LabelInfo = new Label();
 		((System.ComponentModel.ISupportInitialize)SplitMain).BeginInit();
 		SplitMain.Panel1.SuspendLayout();
 		SplitMain.Panel2.SuspendLayout();
@@ -144,6 +145,7 @@ partial class MainForm
 		// PanelMenu
 		// 
 		PanelMenu.BackColor = SystemColors.ControlLightLight;
+		PanelMenu.Controls.Add(LabelInfo);
 		PanelMenu.Controls.Add(BtnHfsOptimize);
 		PanelMenu.Controls.Add(BtnExtract);
 		PanelMenu.Controls.Add(BtnRemove);
@@ -227,6 +229,17 @@ partial class MainForm
 		BtnNewHfs.UseVisualStyleBackColor = true;
 		BtnNewHfs.Click += BtnNewHfs_Click;
 		// 
+		// LabelInfo
+		// 
+		LabelInfo.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
+		LabelInfo.Location = new Point(314, 3);
+		LabelInfo.Name = "LabelInfo";
+		LabelInfo.Size = new Size(566, 36);
+		LabelInfo.TabIndex = 6;
+		LabelInfo.Text = "!!!";
+		LabelInfo.TextAlign = ContentAlignment.MiddleCenter;
+		LabelInfo.Visible = false;
+		// 
 		// MainForm
 		// 
 		AutoScaleDimensions = new SizeF(9F, 20F);
@@ -272,4 +285,5 @@ partial class MainForm
 	private Button BtnRemove;
 	private Button BtnMkDir;
 	private Button BtnOpenHfs;
+	private Label LabelInfo;
 }

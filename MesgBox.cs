@@ -117,7 +117,6 @@ public partial class MesgBox : Form
 			Height -= ListItems.Height;
 		}
 
-		StartPosition = FormStartPosition.CenterParent;
 		base.ShowDialog();
 		return DialogResult;
 	}
@@ -130,7 +129,6 @@ public partial class MesgBox : Form
 			Height -= ListItems.Height;
 		}
 
-		StartPosition = FormStartPosition.CenterParent;
 		base.ShowDialog(parent);
 		return DialogResult;
 	}
@@ -164,6 +162,42 @@ public partial class MesgBox : Form
 		using var box = new MesgBox { Text = title, Message = mesg, BoxIcon = icon, BoxButtons = buttons };
 		foreach (var item in items)
 			box.ListItems.Items.Add(item);
+		return box.ShowDialog();
+	}
+
+	public static DialogResult ShowCenter(string mesg,
+		MessageBoxIcon icon = MessageBoxIcon.Information, MessageBoxButtons buttons = MessageBoxButtons.OK)
+	{
+		using var box = new MesgBox { Message = mesg, BoxIcon = icon, BoxButtons = buttons };
+		box.StartPosition = FormStartPosition.CenterScreen;
+		return box.ShowDialog();
+	}
+
+	public static DialogResult ShowCenter(string title, string mesg,
+		MessageBoxIcon icon = MessageBoxIcon.Information, MessageBoxButtons buttons = MessageBoxButtons.OK)
+	{
+		using var box = new MesgBox { Text = title, Message = mesg, BoxIcon = icon, BoxButtons = buttons };
+		box.StartPosition = FormStartPosition.CenterScreen;
+		return box.ShowDialog();
+	}
+
+	public static DialogResult ShowCenter(string mesg, IList<string> items,
+		MessageBoxIcon icon = MessageBoxIcon.Information, MessageBoxButtons buttons = MessageBoxButtons.OK)
+	{
+		using var box = new MesgBox { Message = mesg, BoxIcon = icon, BoxButtons = buttons };
+		foreach (var item in items)
+			box.ListItems.Items.Add(item);
+		box.StartPosition = FormStartPosition.CenterScreen;
+		return box.ShowDialog();
+	}
+
+	public static DialogResult ShowCenter(string title, string mesg, IList<string> items,
+		MessageBoxIcon icon = MessageBoxIcon.Information, MessageBoxButtons buttons = MessageBoxButtons.OK)
+	{
+		using var box = new MesgBox { Text = title, Message = mesg, BoxIcon = icon, BoxButtons = buttons };
+		foreach (var item in items)
+			box.ListItems.Items.Add(item);
+		box.StartPosition = FormStartPosition.CenterScreen;
 		return box.ShowDialog();
 	}
 }

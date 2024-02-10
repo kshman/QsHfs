@@ -16,6 +16,33 @@ internal static class QsSupp
 			return (path[..index], path[(index + 1)..]);
 	}
 
+	public static (uint len, uint hash) StringLenAndHash(string s)
+	{
+		uint hash = 0, cnt = 0;
+		var u8 = System.Text.Encoding.UTF8.GetBytes(s.ToLower());
+		int len = Math.Min(u8.Length, 256);
+		for (int i = 0; i < len; i++, cnt++)
+			hash = (hash << 5) - hash + u8[i];
+		hash = (hash << 5) - hash + cnt - 1;
+		return ((uint)u8.Length, hash);
+	}
+
+	public static (uint len, uint hash) StringLenAndHash(byte[] u8)
+	{
+		uint hash = 0, cnt = 0;
+		int len = Math.Min(u8.Length, 256);
+		for (int i = 0; i < len; i++, cnt++)
+			hash = (hash << 5) - hash + u8[i];
+		hash = (hash << 5) - hash + cnt - 1;
+		return ((uint)u8.Length, hash);
+	}
+
+	public static uint Slen(string s)
+	{
+		var u8 = System.Text.Encoding.UTF8.GetBytes(s.ToLower());
+		return (uint)u8.Length;
+	}
+
 	public static uint Shash(string s)
 	{
 		uint hash = 0, cnt = 0;
