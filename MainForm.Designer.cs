@@ -39,13 +39,13 @@ partial class MainForm
 		ColumnCmpr = new ColumnHeader();
 		TableMain = new TableLayoutPanel();
 		PanelMenu = new Panel();
+		LabelInfo = new Label();
 		BtnHfsOptimize = new Button();
 		BtnExtract = new Button();
 		BtnRemove = new Button();
 		BtnMkDir = new Button();
 		BtnOpenHfs = new Button();
 		BtnNewHfs = new Button();
-		LabelInfo = new Label();
 		((System.ComponentModel.ISupportInitialize)SplitMain).BeginInit();
 		SplitMain.Panel1.SuspendLayout();
 		SplitMain.Panel2.SuspendLayout();
@@ -69,8 +69,8 @@ partial class MainForm
 		// SplitMain.Panel2
 		// 
 		SplitMain.Panel2.Controls.Add(ListFiles);
-		SplitMain.Size = new Size(876, 516);
-		SplitMain.SplitterDistance = 260;
+		SplitMain.Size = new Size(976, 516);
+		SplitMain.SplitterDistance = 175;
 		SplitMain.SplitterWidth = 5;
 		SplitMain.TabIndex = 0;
 		// 
@@ -80,7 +80,7 @@ partial class MainForm
 		TreeDirectory.Location = new Point(0, 0);
 		TreeDirectory.Margin = new Padding(4);
 		TreeDirectory.Name = "TreeDirectory";
-		TreeDirectory.Size = new Size(260, 516);
+		TreeDirectory.Size = new Size(175, 516);
 		TreeDirectory.TabIndex = 0;
 		// 
 		// ListFiles
@@ -95,7 +95,7 @@ partial class MainForm
 		ListFiles.Location = new Point(0, 0);
 		ListFiles.Margin = new Padding(4);
 		ListFiles.Name = "ListFiles";
-		ListFiles.Size = new Size(611, 516);
+		ListFiles.Size = new Size(796, 516);
 		ListFiles.TabIndex = 0;
 		ListFiles.UseCompatibleStateImageBehavior = false;
 		ListFiles.View = View.Details;
@@ -139,7 +139,7 @@ partial class MainForm
 		TableMain.RowCount = 2;
 		TableMain.RowStyles.Add(new RowStyle(SizeType.Absolute, 45F));
 		TableMain.RowStyles.Add(new RowStyle());
-		TableMain.Size = new Size(884, 561);
+		TableMain.Size = new Size(984, 561);
 		TableMain.TabIndex = 1;
 		// 
 		// PanelMenu
@@ -156,8 +156,19 @@ partial class MainForm
 		PanelMenu.Location = new Point(0, 0);
 		PanelMenu.Margin = new Padding(0);
 		PanelMenu.Name = "PanelMenu";
-		PanelMenu.Size = new Size(884, 45);
+		PanelMenu.Size = new Size(984, 45);
 		PanelMenu.TabIndex = 1;
+		// 
+		// LabelInfo
+		// 
+		LabelInfo.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
+		LabelInfo.Location = new Point(314, 3);
+		LabelInfo.Name = "LabelInfo";
+		LabelInfo.Size = new Size(666, 36);
+		LabelInfo.TabIndex = 6;
+		LabelInfo.Text = "!!!";
+		LabelInfo.TextAlign = ContentAlignment.MiddleCenter;
+		LabelInfo.Visible = false;
 		// 
 		// BtnHfsOptimize
 		// 
@@ -229,22 +240,11 @@ partial class MainForm
 		BtnNewHfs.UseVisualStyleBackColor = true;
 		BtnNewHfs.Click += BtnNewHfs_Click;
 		// 
-		// LabelInfo
-		// 
-		LabelInfo.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
-		LabelInfo.Location = new Point(314, 3);
-		LabelInfo.Name = "LabelInfo";
-		LabelInfo.Size = new Size(566, 36);
-		LabelInfo.TabIndex = 6;
-		LabelInfo.Text = "!!!";
-		LabelInfo.TextAlign = ContentAlignment.MiddleCenter;
-		LabelInfo.Visible = false;
-		// 
 		// MainForm
 		// 
 		AutoScaleDimensions = new SizeF(9F, 20F);
 		AutoScaleMode = AutoScaleMode.Font;
-		ClientSize = new Size(884, 561);
+		ClientSize = new Size(984, 561);
 		Controls.Add(TableMain);
 		DoubleBuffered = true;
 		Font = new Font("맑은 고딕", 11.25F, FontStyle.Regular, GraphicsUnit.Point, 129);

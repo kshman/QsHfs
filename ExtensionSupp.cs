@@ -2,6 +2,29 @@
 
 internal static class ExtensionSupp
 {
+	private static Dictionary<Hfs.FileType, string> LocaleTypes = new Dictionary<Hfs.FileType, string>
+	{
+		{ Hfs.FileType.Unknown, "<모름>" },
+		{ Hfs.FileType.Model, "모델" },
+		{ Hfs.FileType.Archive, "아카이브" },
+		{ Hfs.FileType.Script, "스크립트" },
+		{ Hfs.FileType.Texture, "텍스쳐" },
+		{ Hfs.FileType.Video, "비디오" },
+		{ Hfs.FileType.Code, "소스코드" },
+		{ Hfs.FileType.Image, "이미지" },
+		{ Hfs.FileType.Json, "JSON" },
+		{ Hfs.FileType.Sound, "소리" },
+		{ Hfs.FileType.SoundEffect, "소리이펙트" },
+		{ Hfs.FileType.Document, "문서" },
+		{ Hfs.FileType.MarkUp, "마크업" },
+		{ Hfs.FileType.Animation, "애니메이션" },
+		{ Hfs.FileType.System, "<시스템>" },
+		{ Hfs.FileType.Text, "텍스트" },
+		{ Hfs.FileType.DataText, "데이터텍스트" },
+		{ Hfs.FileType.MarkDown, "마크다운" },
+		{ Hfs.FileType.Program, "응용프로그램" }	
+	};
+
 	private static Dictionary<string, Hfs.FileType> FileTypes = new Dictionary<string, Hfs.FileType>
 	{
 		{ ".3ds", Hfs.FileType.Model },
@@ -112,6 +135,13 @@ internal static class ExtensionSupp
 		{ ".zip", Hfs.FileType.Archive },
 		{ ".iso", Hfs.FileType.Archive }
 	};
+
+	public static string GetTypeName(Hfs.FileType type)
+	{
+		if (LocaleTypes.TryGetValue(type, out var name))
+			return name;
+		return "<모름>";
+	}
 
 	public static Hfs.FileType GetType(string filename)
 	{

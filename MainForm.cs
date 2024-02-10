@@ -348,7 +348,7 @@ public partial class MainForm : Form
 			}
 			else
 			{
-				item.SubItems.Add(f.file.FileType.ToString());
+				item.SubItems.Add(ExtensionSupp.GetTypeName(f.file.FileType));
 				item.SubItems.Add(QsSupp.ToDateTime(f.file.stc).ToString());
 				item.SubItems.Add(QsSupp.SizeString(f.file.source.size));
 				item.SubItems.Add(f.file.IsCompressed ? QsSupp.SizeString(f.file.source.cmpr) : "<압축안됨>");
@@ -450,7 +450,29 @@ public partial class MainForm : Form
 				UpdateFiles();
 				return;
 			}
+
+			var ext = Path.GetExtension(file.name).ToLower();
+			var temp = Path.GetTempFileName() + ext;
+
+			var data = _hfs.Read(file.name, out var size);
+			if (data == null || data.Length == 0)
+				return;
+
+			File.WriteAllBytes(temp, data);
+			var ps = new System.Diagnostics.Process();
+			ps.StartInfo.FileName = temp;
+			ps.StartInfo.UseShellExecute = true;
+			ps.StartInfo.Verb = "open";
+			ps.StartInfo.CreateNoWindow = true;
+			ps.EnableRaisingEvents = true;
+			ps.Exited += (_, _) => ExecFileWait(temp);
+			ps.Start();
 		}
+	}
+
+	private void ExecFileWait(string temp)
+	{
+		File.Delete(temp);
 	}
 
 	// 풀기

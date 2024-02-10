@@ -1,4 +1,6 @@
-﻿#define DEBUG_TRACE
+﻿#if DEBUG
+#define DEBUG_TRACE
+#endif
 using System.IO.Compression;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -121,10 +123,11 @@ internal class QnHfs : IDisposable
 			return false;
 		}
 
+		var len = QsSupp.Slen(name);
 		var next = (uint)_fs.Position;
-		WriteDirectory(name, 0, (uint)(next + HFSFILE_SIZE + name.Length), 0);
+		WriteDirectory(name, 0, (uint)(next + HFSFILE_SIZE + len), 0);
 		var curr = (uint)_fs.Position;
-		WriteDirectory(".", (uint)(curr + HFSFILE_SIZE + 1), (uint)(next + HFSFILE_SIZE + name.Length), 0);
+		WriteDirectory(".", (uint)(curr + HFSFILE_SIZE + 1), (uint)(next + HFSFILE_SIZE + len), 0);
 		var first = _infos.First();
 		WriteDirectory("..", 0, first.file.source.seek, first.file.stc);
 
