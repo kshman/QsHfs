@@ -1,120 +1,17 @@
 ﻿#define DEBUG_TRACE
-using System.Drawing;
-using System.IO;
+using System.IO.Compression;
 using System.Runtime.InteropServices;
-using System.Security.Cryptography.X509Certificates;
 using System.Text;
+using System.Xml;
+using QsHfs.Hfs;
 using Debug = System.Diagnostics.Debug;
 
 namespace QsHfs;
 
-internal class QsHfs
+internal class QsHfs : IDisposable
 {
 	const uint HFS_HEADER = 0x00534648;
 	const ushort HFS_VERSION = 200;
-
-	public enum FileType
-	{
-		Unknown = 0,
-		System = 1,
-		Text = 4,
-		Picture = 5,
-		Sound = 6,
-		Video = 7,
-		Code = 8,
-		Program = 9,
-		Script = 10,
-		Archive = 11,
-		MarkUp = 12,
-		MarkDown = 13,
-		Json = 14,
-		Toml = 15,
-	}
-
-	public enum FileAttr
-	{
-		None = 0,
-		File = 1 << 0,
-		Dir = 1 << 1,
-		System = 1 << 2,
-		Hidden = 1 << 3,
-		ReadOnly = 1 << 4,
-		Link = 1 << 5,
-		Compress = 1 << 6,
-		Encrypt = 1 << 7,
-	}
-
-	[StructLayout(LayoutKind.Sequential)]
-	struct HfsHeader
-	{
-		public uint header;
-		public ushort version;
-		public ushort notuse;
-		public long stc;
-		public long stw;
-		public uint revision;
-		[MarshalAs(UnmanagedType.ByValArray, SizeConst = 64)]
-		public byte[] desc;
-
-		public override string ToString()
-		{
-			DateTime dt = QsSupp.ToDateTime(stc);
-			string sdesc = Encoding.UTF8.GetString(desc).TrimEnd('\0');
-			return $"HFS {version}.{revision} ({dt}) {sdesc}";
-		}
-	}
-	[StructLayout(LayoutKind.Sequential)]
-	struct HfsSource
-	{
-		public byte type;
-		public byte attr;
-		public ushort len;
-		public uint size;
-		public uint cmpr;
-		public uint seek;
-
-		override public string ToString()
-		{
-			if ((attr & (int)FileAttr.Dir) == (int)FileAttr.Dir)
-				return $"{(FileType)type}/{(FileAttr)attr} {seek}";
-			else
-				return $"{(FileType)type}/{(FileAttr)attr} {seek} ({size}/{cmpr})";
-		}
-	}
-	[StructLayout(LayoutKind.Sequential)]
-	struct HfsFile
-	{
-		public HfsSource source;
-		public long stc;
-		public uint hash;
-		public uint meta;
-		public uint next;
-
-		public override string ToString()
-		{
-			return source.ToString();
-		}
-	}
-	struct HfsInfo
-	{
-		public HfsFile file;
-		public string name;
-		public DateTime stc;
-
-		public HfsInfo()
-		{
-			file = new HfsFile();
-			name = string.Empty;
-			stc = DateTime.MinValue;
-		}
-
-		public override string ToString()
-		{
-			if ((file.source.attr & (int)FileAttr.Dir) == (int)FileAttr.Dir)
-				return $"[{name}] ({stc})";
-			return $"{name} ({file.source.size}/{file.source.cmpr}, {stc})";
-		}
-	}
 
 	internal static readonly char[] directory_separator = ['\\', '/', '\n', '\r', '\t'];
 
@@ -128,7 +25,7 @@ internal class QsHfs
 
 	private string _desc = string.Empty;
 	private string _path = string.Empty;
-	private List<HfsInfo> _infos = new List<HfsInfo>();
+	private List<Hfs.Info> _infos = [];
 
 	private Random _rand = new();
 
@@ -139,14 +36,15 @@ internal class QsHfs
 
 	public QsHfs(string path, bool create)
 	{
-		HFSAT_ROOT = Marshal.SizeOf<HfsHeader>();
-		HFSAT_NEXT = Marshal.OffsetOf<HfsFile>(nameof(HfsFile.next));
-		HFSFILE_SIZE = (uint)Marshal.SizeOf<HfsFile>();
+		HFSAT_ROOT = Marshal.SizeOf<Hfs.Header>();
+		HFSAT_NEXT = Marshal.OffsetOf<Hfs.FileContent>(nameof(Hfs.FileContent.next));
+		HFSFILE_SIZE = (uint)Marshal.SizeOf<Hfs.FileContent>();
 
 		if (create)
 		{
 			_fs = new FileStream(path, FileMode.Create, FileAccess.ReadWrite, FileShare.Read);
 			WriteHeader();
+			_fs.Seek(0, SeekOrigin.Begin);
 		}
 		else
 		{
@@ -163,6 +61,27 @@ internal class QsHfs
 		ChDir("test");
 		ChDir("..");
 	}
+
+	// 소멸자
+	public void Dispose()
+	{
+		_fs.Close();
+	}
+
+	// 닫기
+	public void Close()
+	{
+		_fs.Close();
+	}
+
+	// 파일 목록
+	public List<Hfs.Info> GetFiles()
+	{
+		return _infos;
+	}
+
+	// 경로
+	public string CurrentDirectory => _path;
 
 	// 디렉토리 만들기
 	public bool MkDir(string directory)
@@ -230,7 +149,7 @@ internal class QsHfs
 
 		if (_infos.Count > 0)
 		{
-			HfsInfo first = _infos.First();
+			Hfs.Info first = _infos.First();
 			_fs.Seek(first.file.source.seek, SeekOrigin.Begin);
 		}
 
@@ -240,7 +159,7 @@ internal class QsHfs
 			_path = "/";
 		}
 
-		var info = new HfsInfo();
+		var info = new Hfs.Info();
 		var dirs = directory.Split(directory_separator, StringSplitOptions.RemoveEmptyEntries);
 		foreach (var tok in dirs)
 		{
@@ -285,7 +204,7 @@ internal class QsHfs
 			return false;
 
 		uint hash = QsSupp.Shash(name);
-		HfsInfo? found = null;
+		Hfs.Info? found = null;
 		int i = 0;
 		for (i = 0; i < _infos.Count; i++)
 		{
@@ -303,8 +222,8 @@ internal class QsHfs
 			return false;
 		}
 
-		uint next = found.Value.file.next;
-		HfsInfo prev = _infos[i - 1];
+		uint next = found.file.next;
+		Hfs.Info prev = _infos[i - 1];
 		try
 		{
 			if (_fs.Seek(HFSAT_NEXT + prev.file.source.seek, SeekOrigin.Begin) <= 0)
@@ -327,7 +246,7 @@ internal class QsHfs
 	// HFS 헤더 읽고 확인
 	private bool ReadHeader()
 	{
-		byte[] buffer = new byte[Marshal.SizeOf<HfsHeader>()];
+		byte[] buffer = new byte[Marshal.SizeOf<Hfs.Header>()];
 		try
 		{
 			if (_fs.Read(buffer, 0, buffer.Length) != buffer.Length)
@@ -338,7 +257,7 @@ internal class QsHfs
 			return false;
 		}
 		GCHandle handle = GCHandle.Alloc(buffer, GCHandleType.Pinned);
-		HfsHeader header = Marshal.PtrToStructure<HfsHeader>(handle.AddrOfPinnedObject());
+		Hfs.Header header = Marshal.PtrToStructure<Hfs.Header>(handle.AddrOfPinnedObject());
 		handle.Free();
 
 		if (header.header != HFS_HEADER || header.version != HFS_VERSION)
@@ -349,9 +268,9 @@ internal class QsHfs
 	}
 
 	// HFS 파일 읽기
-	private bool ReadHfsFile(out HfsFile file)
+	private bool ReadHfsFile(out Hfs.FileContent file)
 	{
-		byte[] buffer = new byte[Marshal.SizeOf<HfsFile>()];
+		byte[] buffer = new byte[Marshal.SizeOf<Hfs.FileContent>()];
 		try
 		{
 			if (_fs.Read(buffer, 0, buffer.Length) != buffer.Length)
@@ -359,19 +278,21 @@ internal class QsHfs
 		}
 		catch (Exception)
 		{
-			file = new HfsFile();
+			file = new Hfs.FileContent();
 			return false;
 		}
 		GCHandle handle = GCHandle.Alloc(buffer, GCHandleType.Pinned);
-		file = Marshal.PtrToStructure<HfsFile>(handle.AddrOfPinnedObject());
+		file = Marshal.PtrToStructure<Hfs.FileContent>(handle.AddrOfPinnedObject());
 		handle.Free();
 		return true;
 	}
 
 	// HFS 파일 읽기 (파일 이름 포함)
-	private bool ReadHfsFile(out HfsInfo info)
+	private bool ReadHfsFile(out Hfs.Info info)
 	{
-		byte[] buffer = new byte[Marshal.SizeOf<HfsFile>()];
+		info = new Hfs.Info();
+
+		byte[] buffer = new byte[Marshal.SizeOf<Hfs.FileContent>()];
 		try
 		{
 			if (_fs.Read(buffer, 0, buffer.Length) != buffer.Length)
@@ -379,11 +300,11 @@ internal class QsHfs
 		}
 		catch (Exception)
 		{
-			info = new HfsInfo();
 			return false;
 		}
+
 		GCHandle handle = GCHandle.Alloc(buffer, GCHandleType.Pinned);
-		info.file = Marshal.PtrToStructure<HfsFile>(handle.AddrOfPinnedObject());
+		info.file = Marshal.PtrToStructure<Hfs.FileContent>(handle.AddrOfPinnedObject());
 		handle.Free();
 		buffer = new byte[info.file.source.len];
 		try
@@ -393,16 +314,17 @@ internal class QsHfs
 		}
 		catch (Exception)
 		{
-			info = new HfsInfo();
+			info = new Hfs.Info();
 			return false;
 		}
+
 		info.name = Encoding.UTF8.GetString(buffer);
 		info.stc = QsSupp.ToDateTime(info.file.stc);
 		return true;
 	}
 
 	// 디렉토리 찾기
-	private bool FindDirectory(ref HfsInfo info, string name, uint hash)
+	private bool FindDirectory(ref Hfs.Info info, string name, uint hash)
 	{
 		while (ReadHfsFile(out info.file))
 		{
@@ -481,9 +403,9 @@ internal class QsHfs
 			desc = $"{name}@{computer} {now}";
 		}
 
-		byte[] buffer = new byte[Marshal.SizeOf<HfsHeader>()];
+		byte[] buffer = new byte[Marshal.SizeOf<Hfs.Header>()];
 		GCHandle handle = GCHandle.Alloc(buffer, GCHandleType.Pinned);
-		HfsHeader header = new HfsHeader
+		Hfs.Header header = new Hfs.Header
 		{
 			header = HFS_HEADER,
 			version = HFS_VERSION,
@@ -491,19 +413,20 @@ internal class QsHfs
 			stc = QsSupp.ToStamp(now),
 			stw = QsSupp.ToStamp(now),
 			revision = 0,
-			desc = Encoding.UTF8.GetBytes(desc)
+			desc = new byte[64],
 		};
+		Encoding.UTF8.GetBytes(desc).CopyTo(header.desc, 0);
 		Marshal.StructureToPtr(header, handle.AddrOfPinnedObject(), false);
 		handle.Free();
 		try
 		{
 			_fs.Write(buffer, 0, buffer.Length);
-			_fs.Seek(0, SeekOrigin.Begin);
 		}
 		catch (Exception)
 		{
 			return false;
 		}
+		WriteDirectory(".", 0, (uint)HFSAT_ROOT, 0);
 		return true;
 	}
 
@@ -512,12 +435,12 @@ internal class QsHfs
 	{
 		if (stc == 0)
 			stc = QsSupp.ToStamp(DateTime.Now);
-		HfsFile file = new HfsFile
+		Hfs.FileContent file = new Hfs.FileContent
 		{
-			source = new HfsSource
+			source = new Hfs.Source
 			{
-				type = (byte)FileType.System,
-				attr = (byte)FileAttr.Dir,
+				type = (byte)Hfs.FileType.System,
+				attr = (byte)Hfs.FileAttr.Dir,
 				size = (uint)_rand.Next(),
 				cmpr = (uint)_rand.Next(),
 				seek = (uint)_rand.Next()
@@ -526,22 +449,22 @@ internal class QsHfs
 			next = next,
 			stc = stc,
 		};
-		return WriteFileHeader(file, name);
+		return WriteFileHeader(ref file, name);
 	}
 
 	// 파일 헤더 쓰기
-	private bool WriteFileHeader(HfsFile file, string name)
+	private bool WriteFileHeader(ref Hfs.FileContent file, string name)
 	{
-		file.source.len = (ushort)name.Length;
+		byte[] namebuf = Encoding.UTF8.GetBytes(name);
+		file.source.len = (ushort)namebuf.Length;
 		file.hash = QsSupp.Shash(name);
-		byte[] buffer = new byte[Marshal.SizeOf<HfsFile>()];
+		byte[] buffer = new byte[Marshal.SizeOf<Hfs.FileContent>()];
 		GCHandle handle = GCHandle.Alloc(buffer, GCHandleType.Pinned);
 		Marshal.StructureToPtr(file, handle.AddrOfPinnedObject(), false);
 		handle.Free();
 		try
 		{
 			_fs.Write(buffer, 0, buffer.Length);
-			byte[] namebuf = Encoding.UTF8.GetBytes(name);
 			_fs.Write(namebuf, 0, namebuf.Length);
 		}
 		catch (Exception)
@@ -549,6 +472,191 @@ internal class QsHfs
 			return false;
 		}
 		return true;
+	}
+
+	// 소스 읽기
+	public byte[] SourceRead(Hfs.Source source)
+	{
+		try
+		{
+			_fs.Seek(source.seek + HFSFILE_SIZE + source.len, SeekOrigin.Begin);
+
+			byte[] buffer;
+			if (source.IsCompressed)
+			{
+				using var outstream = new MemoryStream();
+				using var deflate = new DeflateStream(_fs, CompressionMode.Decompress, true);
+				deflate.CopyTo(outstream);
+				return outstream.ToArray();
+			}
+			else
+			{
+				buffer = new byte[source.size];
+				_fs.Read(buffer, 0, buffer.Length);
+			}
+			return buffer;
+		}
+		catch (Exception)
+		{
+			return Array.Empty<byte>();
+		}
+	}
+
+	// 파일 읽기
+	public byte[] Read(string filename, out int size)
+	{
+		var (dir, name) = QsSupp.DivPath(filename);
+		if (name[0] == '.' ||
+			name.Length >= 260 ||
+			SaveDirectory(dir, out var save) == false)
+		{
+			size = 0;
+			return Array.Empty<byte>();
+		}
+
+		uint hash = QsSupp.Shash(name);
+		Hfs.Info? found = null;
+		foreach (var info in _infos)
+		{
+			if (hash == info.file.hash && name.Length == info.file.source.len &&
+				name.Equals(info.name, StringComparison.InvariantCultureIgnoreCase))
+			{
+				found = info;
+				break;
+			}
+		}
+		if (found == null)
+		{
+			RestoreDirectory(save);
+			size = 0;
+			return Array.Empty<byte>();
+		}
+
+		byte[] buffer = SourceRead(found.file.source);
+		RestoreDirectory(save);
+		size = buffer.Length;
+		return buffer;
+	}
+
+	// 버퍼 저장
+	private bool StoreBuffer(string filename, byte[] data)
+	{
+		var (dir, name) = QsSupp.DivPath(filename);
+		if (name.Length >= 260)
+			return false;
+		if (SaveDirectory(dir, out var save) == false)
+			return false;
+
+		uint hash = QsSupp.Shash(name);
+		foreach (var info in _infos)
+		{
+			if (hash == info.file.hash && name.Equals(info.name, StringComparison.InvariantCultureIgnoreCase))
+			{
+				RestoreDirectory(save);
+				return false;
+			}
+		}
+
+		var type = ExtensionSupp.GetType(name);
+		var rate = ExtensionSupp.GetRate(type);
+
+		var cmpr_size = 0;
+		var bufsize = data.Length;
+		var buffer = data;
+
+		try
+		{
+			if (rate > 0.0)
+			{
+				using var mem = new MemoryStream();
+				using var deflate = new DeflateStream(mem, CompressionLevel.SmallestSize, true);
+				deflate.Write(data, 0, data.Length);
+				deflate.Flush();
+				deflate.Close();
+
+				double d = bufsize * rate;
+				if (mem.Length < d)
+				{
+					buffer = mem.ToArray();
+					cmpr_size = (int)mem.Length;
+				}
+			}
+		}
+		catch (Exception)
+		{
+			RestoreDirectory(save);
+			return false;
+		}
+
+		uint next;
+		Hfs.Info file;
+		try
+		{
+			_fs.Seek(0, SeekOrigin.End);
+			next = (uint)_fs.Position;
+
+			file = new Hfs.Info
+			{
+				file = new Hfs.FileContent
+				{
+					source = new Hfs.Source
+					{
+						type = (byte)type,
+						attr = (byte)Hfs.FileAttr.File,
+						size = (uint)bufsize,
+						cmpr = 0,
+						seek = 0,
+					},
+					meta = 0,
+					next = 0,
+					stc = QsSupp.ToStamp(DateTime.Now),
+				},
+				name = name,
+			};
+			if (cmpr_size > 0)
+			{
+				file.file.source.attr |= (byte)Hfs.FileAttr.Compressed;
+				file.file.source.cmpr = (uint)cmpr_size;
+				if (WriteFileHeader(ref file.file, name) == false)
+					throw new Exception();
+				_fs.Write(buffer, 0, cmpr_size);
+			}
+			else
+			{
+				if (WriteFileHeader(ref file.file, name) == false)
+					throw new Exception();
+				_fs.Write(buffer, 0, bufsize);
+			}
+		}
+		catch (Exception)
+		{
+			RestoreDirectory(save);
+			return false;
+		}
+
+		Hfs.Info last = _infos.Last();
+		last.file.next = (uint)_fs.Position;
+		_fs.Seek(HFSAT_NEXT + last.file.source.seek, SeekOrigin.Begin);
+		_fs.Write(BitConverter.GetBytes(next), 0, sizeof(uint));
+
+		file.file.source.seek = next;
+		_infos.Add(file);
+
+		RestoreDirectory(save);
+		return true;
+	}
+
+	// 파일 저장
+	public bool StoreFile(string? filename, string path)
+	{
+		if (File.Exists(path) == false)
+			return false;
+
+		if (string.IsNullOrEmpty(filename))
+			filename = Path.GetFileName(path);
+
+		byte[] data = File.ReadAllBytes(path);
+		return StoreBuffer(filename, data);
 	}
 }
 

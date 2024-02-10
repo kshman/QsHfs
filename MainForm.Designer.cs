@@ -29,7 +29,6 @@ partial class MainForm
 	private void InitializeComponent()
 	{
 		var resources = new System.ComponentModel.ComponentResourceManager(typeof(MainForm));
-		TscMain = new ToolStripContainer();
 		SplitMain = new SplitContainer();
 		TreeDirectory = new TreeView();
 		ListFiles = new ListView();
@@ -37,51 +36,28 @@ partial class MainForm
 		ColumnType = new ColumnHeader();
 		ColumnDateTime = new ColumnHeader();
 		ColumnSize = new ColumnHeader();
-		ColumnCompr = new ColumnHeader();
-		TsMain = new ToolStrip();
-		TsBtnOpen = new ToolStripButton();
-		TsBtnOptimize = new ToolStripButton();
-		toolStripSeparator3 = new ToolStripSeparator();
-		TsBtnMkDir = new ToolStripButton();
-		TsBtnRemove = new ToolStripButton();
-		TsBtnSubFile = new ToolStripDropDownButton();
-		TsMiFileExport = new ToolStripMenuItem();
-		TsMiFileRemove = new ToolStripMenuItem();
-		TscMain.ContentPanel.SuspendLayout();
-		TscMain.TopToolStripPanel.SuspendLayout();
-		TscMain.SuspendLayout();
+		ColumnCmpr = new ColumnHeader();
+		TableMain = new TableLayoutPanel();
+		PanelMenu = new Panel();
+		BtnHfsOptimize = new Button();
+		BtnExtract = new Button();
+		BtnRemove = new Button();
+		BtnMkDir = new Button();
+		BtnOpenHfs = new Button();
+		BtnNewHfs = new Button();
 		((System.ComponentModel.ISupportInitialize)SplitMain).BeginInit();
 		SplitMain.Panel1.SuspendLayout();
 		SplitMain.Panel2.SuspendLayout();
 		SplitMain.SuspendLayout();
-		TsMain.SuspendLayout();
+		TableMain.SuspendLayout();
+		PanelMenu.SuspendLayout();
 		SuspendLayout();
-		// 
-		// TscMain
-		// 
-		// 
-		// TscMain.ContentPanel
-		// 
-		TscMain.ContentPanel.Controls.Add(SplitMain);
-		TscMain.ContentPanel.Margin = new Padding(4);
-		TscMain.ContentPanel.Size = new Size(884, 516);
-		TscMain.Dock = DockStyle.Fill;
-		TscMain.Location = new Point(0, 0);
-		TscMain.Margin = new Padding(4);
-		TscMain.Name = "TscMain";
-		TscMain.Size = new Size(884, 561);
-		TscMain.TabIndex = 0;
-		TscMain.Text = "TscMain";
-		// 
-		// TscMain.TopToolStripPanel
-		// 
-		TscMain.TopToolStripPanel.Controls.Add(TsMain);
 		// 
 		// SplitMain
 		// 
 		SplitMain.Dock = DockStyle.Fill;
 		SplitMain.FixedPanel = FixedPanel.Panel1;
-		SplitMain.Location = new Point(0, 0);
+		SplitMain.Location = new Point(4, 49);
 		SplitMain.Margin = new Padding(4);
 		SplitMain.Name = "SplitMain";
 		// 
@@ -92,7 +68,7 @@ partial class MainForm
 		// SplitMain.Panel2
 		// 
 		SplitMain.Panel2.Controls.Add(ListFiles);
-		SplitMain.Size = new Size(884, 516);
+		SplitMain.Size = new Size(876, 516);
 		SplitMain.SplitterDistance = 260;
 		SplitMain.SplitterWidth = 5;
 		SplitMain.TabIndex = 0;
@@ -111,14 +87,14 @@ partial class MainForm
 		ListFiles.AllowColumnReorder = true;
 		ListFiles.AllowDrop = true;
 		ListFiles.AutoArrange = false;
-		ListFiles.Columns.AddRange(new ColumnHeader[] { ColumnName, ColumnType, ColumnDateTime, ColumnSize, ColumnCompr });
+		ListFiles.Columns.AddRange(new ColumnHeader[] { ColumnName, ColumnType, ColumnDateTime, ColumnSize, ColumnCmpr });
 		ListFiles.Dock = DockStyle.Fill;
 		ListFiles.FullRowSelect = true;
 		ListFiles.GridLines = true;
 		ListFiles.Location = new Point(0, 0);
 		ListFiles.Margin = new Padding(4);
 		ListFiles.Name = "ListFiles";
-		ListFiles.Size = new Size(619, 516);
+		ListFiles.Size = new Size(611, 516);
 		ListFiles.TabIndex = 0;
 		ListFiles.UseCompatibleStateImageBehavior = false;
 		ListFiles.View = View.Details;
@@ -146,104 +122,121 @@ partial class MainForm
 		// 
 		ColumnSize.Text = "크기";
 		// 
-		// ColumnCompr
+		// ColumnCmpr
 		// 
-		ColumnCompr.Text = "압축";
+		ColumnCmpr.Text = "압축";
 		// 
-		// TsMain
+		// TableMain
 		// 
-		TsMain.AutoSize = false;
-		TsMain.Dock = DockStyle.None;
-		TsMain.ImageScalingSize = new Size(32, 32);
-		TsMain.Items.AddRange(new ToolStripItem[] { TsBtnOpen, TsBtnOptimize, toolStripSeparator3, TsBtnMkDir, TsBtnRemove, TsBtnSubFile });
-		TsMain.Location = new Point(3, 0);
-		TsMain.Name = "TsMain";
-		TsMain.Size = new Size(416, 45);
-		TsMain.TabIndex = 0;
-		TsMain.Text = "TsMain";
+		TableMain.ColumnCount = 1;
+		TableMain.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100F));
+		TableMain.Controls.Add(SplitMain, 0, 1);
+		TableMain.Controls.Add(PanelMenu, 0, 0);
+		TableMain.Dock = DockStyle.Fill;
+		TableMain.Location = new Point(0, 0);
+		TableMain.Name = "TableMain";
+		TableMain.RowCount = 2;
+		TableMain.RowStyles.Add(new RowStyle(SizeType.Absolute, 45F));
+		TableMain.RowStyles.Add(new RowStyle());
+		TableMain.Size = new Size(884, 561);
+		TableMain.TabIndex = 1;
 		// 
-		// TsBtnOpen
+		// PanelMenu
 		// 
-		TsBtnOpen.DisplayStyle = ToolStripItemDisplayStyle.Image;
-		TsBtnOpen.Image = (Image)resources.GetObject("TsBtnOpen.Image");
-		TsBtnOpen.ImageTransparentColor = Color.Magenta;
-		TsBtnOpen.Name = "TsBtnOpen";
-		TsBtnOpen.Size = new Size(36, 42);
-		TsBtnOpen.Text = "toolStripButton2";
-		TsBtnOpen.ToolTipText = "HFS 열기";
-		TsBtnOpen.Click += TsBtnOpen_Click;
+		PanelMenu.BackColor = SystemColors.ControlLightLight;
+		PanelMenu.Controls.Add(BtnHfsOptimize);
+		PanelMenu.Controls.Add(BtnExtract);
+		PanelMenu.Controls.Add(BtnRemove);
+		PanelMenu.Controls.Add(BtnMkDir);
+		PanelMenu.Controls.Add(BtnOpenHfs);
+		PanelMenu.Controls.Add(BtnNewHfs);
+		PanelMenu.Dock = DockStyle.Fill;
+		PanelMenu.Location = new Point(0, 0);
+		PanelMenu.Margin = new Padding(0);
+		PanelMenu.Name = "PanelMenu";
+		PanelMenu.Size = new Size(884, 45);
+		PanelMenu.TabIndex = 1;
 		// 
-		// TsBtnOptimize
+		// BtnHfsOptimize
 		// 
-		TsBtnOptimize.DisplayStyle = ToolStripItemDisplayStyle.Image;
-		TsBtnOptimize.Image = (Image)resources.GetObject("TsBtnOptimize.Image");
-		TsBtnOptimize.ImageTransparentColor = Color.Magenta;
-		TsBtnOptimize.Name = "TsBtnOptimize";
-		TsBtnOptimize.Size = new Size(36, 42);
-		TsBtnOptimize.Text = "toolStripButton3";
-		TsBtnOptimize.ToolTipText = "최적화";
-		TsBtnOptimize.Click += TsBtnOptimize_Click;
+		BtnHfsOptimize.Enabled = false;
+		BtnHfsOptimize.Image = (Image)resources.GetObject("BtnHfsOptimize.Image");
+		BtnHfsOptimize.Location = new Point(255, 1);
+		BtnHfsOptimize.Margin = new Padding(0);
+		BtnHfsOptimize.Name = "BtnHfsOptimize";
+		BtnHfsOptimize.Size = new Size(40, 40);
+		BtnHfsOptimize.TabIndex = 5;
+		BtnHfsOptimize.UseVisualStyleBackColor = true;
+		BtnHfsOptimize.Click += BtnHfsOptimize_Click;
 		// 
-		// toolStripSeparator3
+		// BtnExtract
 		// 
-		toolStripSeparator3.Name = "toolStripSeparator3";
-		toolStripSeparator3.Size = new Size(6, 45);
+		BtnExtract.Enabled = false;
+		BtnExtract.Image = (Image)resources.GetObject("BtnExtract.Image");
+		BtnExtract.Location = new Point(184, 1);
+		BtnExtract.Margin = new Padding(0);
+		BtnExtract.Name = "BtnExtract";
+		BtnExtract.Size = new Size(40, 40);
+		BtnExtract.TabIndex = 4;
+		BtnExtract.UseVisualStyleBackColor = true;
+		BtnExtract.Click += BtnExtract_Click;
 		// 
-		// TsBtnMkDir
+		// BtnRemove
 		// 
-		TsBtnMkDir.DisplayStyle = ToolStripItemDisplayStyle.Image;
-		TsBtnMkDir.Image = (Image)resources.GetObject("TsBtnMkDir.Image");
-		TsBtnMkDir.ImageTransparentColor = Color.Magenta;
-		TsBtnMkDir.Name = "TsBtnMkDir";
-		TsBtnMkDir.Size = new Size(36, 42);
-		TsBtnMkDir.Text = "toolStripButton1";
-		TsBtnMkDir.ToolTipText = "디렉토리 만들기";
-		TsBtnMkDir.Click += TsBtnMkDir_Click;
+		BtnRemove.Enabled = false;
+		BtnRemove.Image = (Image)resources.GetObject("BtnRemove.Image");
+		BtnRemove.Location = new Point(144, 1);
+		BtnRemove.Margin = new Padding(0);
+		BtnRemove.Name = "BtnRemove";
+		BtnRemove.Size = new Size(40, 40);
+		BtnRemove.TabIndex = 3;
+		BtnRemove.UseVisualStyleBackColor = true;
+		BtnRemove.Click += BtnRemove_Click;
 		// 
-		// TsBtnRemove
+		// BtnMkDir
 		// 
-		TsBtnRemove.DisplayStyle = ToolStripItemDisplayStyle.Image;
-		TsBtnRemove.Image = (Image)resources.GetObject("TsBtnRemove.Image");
-		TsBtnRemove.ImageTransparentColor = Color.Magenta;
-		TsBtnRemove.Name = "TsBtnRemove";
-		TsBtnRemove.Size = new Size(36, 42);
-		TsBtnRemove.Text = "toolStripButton2";
-		TsBtnRemove.ToolTipText = "파일 개체 삭제";
-		TsBtnRemove.Click += TsBtnRemove_Click;
+		BtnMkDir.Enabled = false;
+		BtnMkDir.Image = (Image)resources.GetObject("BtnMkDir.Image");
+		BtnMkDir.Location = new Point(104, 1);
+		BtnMkDir.Margin = new Padding(0);
+		BtnMkDir.Name = "BtnMkDir";
+		BtnMkDir.Size = new Size(40, 40);
+		BtnMkDir.TabIndex = 2;
+		BtnMkDir.UseVisualStyleBackColor = true;
+		BtnMkDir.Click += BtnMkDir_Click;
 		// 
-		// TsBtnSubFile
+		// BtnOpenHfs
 		// 
-		TsBtnSubFile.DisplayStyle = ToolStripItemDisplayStyle.Image;
-		TsBtnSubFile.DropDownItems.AddRange(new ToolStripItem[] { TsMiFileExport, TsMiFileRemove });
-		TsBtnSubFile.Image = (Image)resources.GetObject("TsBtnSubFile.Image");
-		TsBtnSubFile.ImageTransparentColor = Color.Magenta;
-		TsBtnSubFile.Name = "TsBtnSubFile";
-		TsBtnSubFile.Size = new Size(45, 42);
-		TsBtnSubFile.Text = "toolStripDropDownButton1";
-		TsBtnSubFile.ToolTipText = "파일 메뉴";
+		BtnOpenHfs.Image = (Image)resources.GetObject("BtnOpenHfs.Image");
+		BtnOpenHfs.Location = new Point(40, 1);
+		BtnOpenHfs.Margin = new Padding(0);
+		BtnOpenHfs.Name = "BtnOpenHfs";
+		BtnOpenHfs.Size = new Size(40, 40);
+		BtnOpenHfs.TabIndex = 1;
+		BtnOpenHfs.UseVisualStyleBackColor = true;
+		BtnOpenHfs.Click += BtnOpenHfs_Click;
 		// 
-		// TsMiFileExport
+		// BtnNewHfs
 		// 
-		TsMiFileExport.Name = "TsMiFileExport";
-		TsMiFileExport.Size = new Size(180, 22);
-		TsMiFileExport.Text = "파일 추출";
-		TsMiFileExport.Click += TsMiFileExport_Click;
-		// 
-		// TsMiFileRemove
-		// 
-		TsMiFileRemove.Name = "TsMiFileRemove";
-		TsMiFileRemove.Size = new Size(180, 22);
-		TsMiFileRemove.Text = "파일 삭제";
-		TsMiFileRemove.Click += TsMiFileRemove_Click;
+		BtnNewHfs.Image = (Image)resources.GetObject("BtnNewHfs.Image");
+		BtnNewHfs.Location = new Point(4, 3);
+		BtnNewHfs.Margin = new Padding(0);
+		BtnNewHfs.Name = "BtnNewHfs";
+		BtnNewHfs.Size = new Size(36, 36);
+		BtnNewHfs.TabIndex = 0;
+		BtnNewHfs.UseVisualStyleBackColor = true;
+		BtnNewHfs.Click += BtnNewHfs_Click;
 		// 
 		// MainForm
 		// 
 		AutoScaleDimensions = new SizeF(9F, 20F);
 		AutoScaleMode = AutoScaleMode.Font;
 		ClientSize = new Size(884, 561);
-		Controls.Add(TscMain);
+		Controls.Add(TableMain);
+		DoubleBuffered = true;
 		Font = new Font("맑은 고딕", 11.25F, FontStyle.Regular, GraphicsUnit.Point, 129);
 		Icon = (Icon)resources.GetObject("$this.Icon");
+		KeyPreview = true;
 		Margin = new Padding(4);
 		MinimumSize = new Size(640, 300);
 		Name = "MainForm";
@@ -252,23 +245,17 @@ partial class MainForm
 		FormClosing += MainForm_FormClosing;
 		FormClosed += MainForm_FormClosed;
 		Load += MainForm_Load;
-		TscMain.ContentPanel.ResumeLayout(false);
-		TscMain.TopToolStripPanel.ResumeLayout(false);
-		TscMain.ResumeLayout(false);
-		TscMain.PerformLayout();
+		KeyDown += MainForm_KeyDown;
 		SplitMain.Panel1.ResumeLayout(false);
 		SplitMain.Panel2.ResumeLayout(false);
 		((System.ComponentModel.ISupportInitialize)SplitMain).EndInit();
 		SplitMain.ResumeLayout(false);
-		TsMain.ResumeLayout(false);
-		TsMain.PerformLayout();
+		TableMain.ResumeLayout(false);
+		PanelMenu.ResumeLayout(false);
 		ResumeLayout(false);
 	}
 
 	#endregion
-
-	private ToolStripContainer TscMain;
-	private ToolStrip TsMain;
 	private SplitContainer SplitMain;
 	private TreeView TreeDirectory;
 	private ListView ListFiles;
@@ -276,13 +263,13 @@ partial class MainForm
 	private ColumnHeader ColumnType;
 	private ColumnHeader ColumnDateTime;
 	private ColumnHeader ColumnSize;
-	private ColumnHeader ColumnCompr;
-	private ToolStripButton TsBtnOpen;
-	private ToolStripButton TsBtnOptimize;
-	private ToolStripSeparator toolStripSeparator3;
-	private ToolStripButton TsBtnMkDir;
-	private ToolStripButton TsBtnRemove;
-	private ToolStripDropDownButton TsBtnSubFile;
-	private ToolStripMenuItem TsMiFileExport;
-	private ToolStripMenuItem TsMiFileRemove;
+	private ColumnHeader ColumnCmpr;
+	private TableLayoutPanel TableMain;
+	private Panel PanelMenu;
+	private Button BtnNewHfs;
+	private Button BtnHfsOptimize;
+	private Button BtnExtract;
+	private Button BtnRemove;
+	private Button BtnMkDir;
+	private Button BtnOpenHfs;
 }

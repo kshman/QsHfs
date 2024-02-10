@@ -52,4 +52,37 @@ internal static class QsSupp
 		stamp = (stamp << 14) + dt.Year;
 		return stamp;
 	}
+
+	public static string SizeString(long size)
+	{
+		string sfx;
+		double n;
+
+		if (size < 1024)
+		{
+			sfx = "";
+			n = size;
+		}
+		else if (size < 1024*1024)
+		{
+			sfx = "KB";
+			n = size/1024.0;
+		}
+		else if (size < 1024*1024*1024)
+		{
+			sfx = "MB";
+			n = size/1024.0/1024.0;
+		}
+		else
+		{
+			sfx = "GB";
+			n = size/1024.0/1024.0/1024.0;
+		}
+
+		double t = n-(double)((int)n);
+		if (t > 0.1)
+			return $"{n:0.0} {sfx}";
+		else
+			return $"{n:0} {sfx}";
+	}
 }
