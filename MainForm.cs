@@ -5,6 +5,7 @@ public partial class MainForm : Form
 	private bool _escape = false;
 	private string _last_directory = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
 	private string _last_extract = string.Empty;
+	private string _last_hfs = string.Empty;
 
 	private QnHfs? _hfs = null;
 	private List<string> _history = [];
@@ -85,6 +86,11 @@ public partial class MainForm : Form
 			case Keys.D0:
 				if (e.Control)
 					Optimize();
+				break;
+
+			case Keys.Z:
+				if (e.Control && _hfs == null && string.IsNullOrEmpty(_last_hfs) == false)
+					OpenHfs(_last_hfs, false);
 				break;
 		}
 
@@ -285,6 +291,7 @@ public partial class MainForm : Form
 			_hfs = null;
 		}
 
+		_last_hfs = filename;
 		UpdateFiles();
 
 		if (_hfs != null)
@@ -303,8 +310,10 @@ public partial class MainForm : Form
 		if (_hfs == null)
 			return;
 
+#if false
 		if (MesgBox.Show(this, "HFS ´Ý±â", "ÁøÂ¥ ´ÝÀ»°Å¿¹¿ä?", MessageBoxIcon.Question, MessageBoxButtons.YesNo) == DialogResult.No)
 			return;
+#endif
 
 		_hfs.Close();
 		_hfs = null;
