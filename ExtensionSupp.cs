@@ -2,27 +2,40 @@
 
 internal static class ExtensionSupp
 {
-	private static Dictionary<Hfs.FileType, string> LocaleTypes = new Dictionary<Hfs.FileType, string>
+	private record FileTypeInfo
 	{
-		{ Hfs.FileType.Unknown, "<모름>" },
-		{ Hfs.FileType.Model, "모델" },
-		{ Hfs.FileType.Archive, "아카이브" },
-		{ Hfs.FileType.Script, "스크립트" },
-		{ Hfs.FileType.Texture, "텍스쳐" },
-		{ Hfs.FileType.Video, "비디오" },
-		{ Hfs.FileType.Code, "소스코드" },
-		{ Hfs.FileType.Image, "이미지" },
-		{ Hfs.FileType.Json, "JSON" },
-		{ Hfs.FileType.Sound, "소리" },
-		{ Hfs.FileType.SoundEffect, "소리이펙트" },
-		{ Hfs.FileType.Document, "문서" },
-		{ Hfs.FileType.MarkUp, "마크업" },
-		{ Hfs.FileType.Animation, "애니메이션" },
-		{ Hfs.FileType.System, "<시스템>" },
-		{ Hfs.FileType.Text, "텍스트" },
-		{ Hfs.FileType.DataText, "데이터텍스트" },
-		{ Hfs.FileType.MarkDown, "마크다운" },
-		{ Hfs.FileType.Program, "응용프로그램" }	
+		public string Name;
+		public Hfs.FileType Type;
+		public Hfs.FileAttr Attr;
+
+		public FileTypeInfo(string name, Hfs.FileType type, Hfs.FileAttr attr)
+		{
+			Name = name;
+			Type = type;
+			Attr = attr;
+		}
+	}
+
+	private static Dictionary<Hfs.FileType, FileTypeInfo> LocaleTypes = new Dictionary<Hfs.FileType, FileTypeInfo>
+	{
+		{ Hfs.FileType.Unknown, new FileTypeInfo("<모름>", Hfs.FileType.Unknown,Hfs.FileAttr.None) },
+		{ Hfs.FileType.Model, new FileTypeInfo("모델" , Hfs.FileType.Model,Hfs.FileAttr.None)},
+		{ Hfs.FileType.Archive, new FileTypeInfo("아카이브" , Hfs.FileType.Archive,Hfs.FileAttr.Indirect)},
+		{ Hfs.FileType.Script, new FileTypeInfo("스크립트" , Hfs.FileType.Script,Hfs.FileAttr.None)},
+		{ Hfs.FileType.Texture, new FileTypeInfo("텍스쳐" , Hfs.FileType.Texture,Hfs.FileAttr.None)},
+		{ Hfs.FileType.Video, new FileTypeInfo("비디오" , Hfs.FileType.Video,Hfs.FileAttr.Indirect)},
+		{ Hfs.FileType.Code, new FileTypeInfo("소스코드" , Hfs.FileType.Code,Hfs.FileAttr.None)},
+		{ Hfs.FileType.Image, new FileTypeInfo("이미지" , Hfs.FileType.Image,Hfs.FileAttr.None)},
+		{ Hfs.FileType.Json, new FileTypeInfo("JSON" , Hfs.FileType.Json,Hfs.FileAttr.None)},
+		{ Hfs.FileType.Sound, new FileTypeInfo("소리" , Hfs.FileType.Sound,Hfs.FileAttr.None)},
+		{ Hfs.FileType.SoundEffect, new FileTypeInfo("소리이펙트" , Hfs.FileType.SoundEffect,Hfs.FileAttr.None)},
+		{ Hfs.FileType.Document, new FileTypeInfo("문서" , Hfs.FileType.Document,Hfs.FileAttr.None)},
+		{ Hfs.FileType.MarkUp, new FileTypeInfo("마크업" , Hfs.FileType.MarkUp,Hfs.FileAttr.None)},
+		{ Hfs.FileType.Animation, new FileTypeInfo("애니메이션" , Hfs.FileType.Animation,Hfs.FileAttr.None)},
+		{ Hfs.FileType.Text, new FileTypeInfo("텍스트" , Hfs.FileType.Text,Hfs.FileAttr.None)},
+		{ Hfs.FileType.DataText, new FileTypeInfo("데이터텍스트" , Hfs.FileType.DataText,Hfs.FileAttr.None)},
+		{ Hfs.FileType.MarkDown, new FileTypeInfo("마크다운" , Hfs.FileType.MarkDown,Hfs.FileAttr.None)},
+		{ Hfs.FileType.Program, new FileTypeInfo("응용프로그램" , Hfs.FileType.Program,Hfs.FileAttr.None)}
 	};
 
 	private static Dictionary<string, Hfs.FileType> FileTypes = new Dictionary<string, Hfs.FileType>
@@ -35,6 +48,7 @@ internal static class ExtensionSupp
 		{ ".avi", Hfs.FileType.Video },
 		{ ".bat", Hfs.FileType.Script },
 		{ ".bc", Hfs.FileType.Texture },
+		{ ".bin", Hfs.FileType.Archive },
 		{ ".blend", Hfs.FileType.Model },
 		{ ".bmp", Hfs.FileType.Image },
 		{ ".bson", Hfs.FileType.Json },
@@ -72,6 +86,9 @@ internal static class ExtensionSupp
 		{ ".hs", Hfs.FileType.Script },
 		{ ".htm", Hfs.FileType.MarkUp },
 		{ ".html", Hfs.FileType.MarkUp },
+		{ ".hxa", Hfs.FileType.Image },
+		{ ".hxm", Hfs.FileType.Image },
+		{ ".hxv", Hfs.FileType.Video },
 		{ ".ico", Hfs.FileType.Image },
 		{ ".iges", Hfs.FileType.Model },
 		{ ".igs", Hfs.FileType.Model },
@@ -83,7 +100,6 @@ internal static class ExtensionSupp
 		{ ".json5", Hfs.FileType.Json },
 		{ ".jsp", Hfs.FileType.Script },
 		{ ".ktx", Hfs.FileType.Texture },
-		{ ".lnk", Hfs.FileType.System },
 		{ ".lua", Hfs.FileType.Script },
 		{ ".md", Hfs.FileType.MarkDown },
 		{ ".mkv", Hfs.FileType.Video },
@@ -101,6 +117,7 @@ internal static class ExtensionSupp
 		{ ".psd", Hfs.FileType.Image },
 		{ ".pvr", Hfs.FileType.Texture },
 		{ ".py", Hfs.FileType.Script },
+		{ ".qoi", Hfs.FileType.Image },
 		{ ".qra", Hfs.FileType.Animation },
 		{ ".qrm", Hfs.FileType.Model },
 		{ ".rar", Hfs.FileType.Archive },
@@ -114,6 +131,7 @@ internal static class ExtensionSupp
 		{ ".svg", Hfs.FileType.Image },
 		{ ".tar", Hfs.FileType.Archive },
 		{ ".tga", Hfs.FileType.Image },
+		{ ".tgz", Hfs.FileType.Archive },
 		{ ".tif", Hfs.FileType.Image },
 		{ ".tiff", Hfs.FileType.Image },
 		{ ".toml", Hfs.FileType.DataText },
@@ -136,13 +154,6 @@ internal static class ExtensionSupp
 		{ ".iso", Hfs.FileType.Archive }
 	};
 
-	public static string GetTypeName(Hfs.FileType type)
-	{
-		if (LocaleTypes.TryGetValue(type, out var name))
-			return name;
-		return "<모름>";
-	}
-
 	public static Hfs.FileType GetType(string filename)
 	{
 		var ext = Path.GetExtension(filename).ToLower();
@@ -151,7 +162,21 @@ internal static class ExtensionSupp
 		return Hfs.FileType.Unknown;
 	}
 
-	public static double GetRate(Hfs.FileType type)
+	public static string GetTypeName(Hfs.FileType type)
+	{
+		if (LocaleTypes.TryGetValue(type, out var info))
+			return info.Name;
+		return "<모름>";
+	}
+
+	public static Hfs.FileAttr GetTypeAttr(Hfs.FileType type)
+	{
+		if (LocaleTypes.TryGetValue(type, out var info))
+			return info.Attr;
+		return Hfs.FileAttr.None;
+	}
+
+	public static double GetTypeRate(Hfs.FileType type)
 	{
 		switch (type)
 		{

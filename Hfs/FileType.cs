@@ -3,7 +3,7 @@
 internal enum FileType
 {
 	Unknown = 0,
-	System = 1,
+	Dir = 1,
 	Text = 4,
 	Image = 5,
 	Sound = 6,
@@ -21,5 +21,4 @@ internal enum FileType
 	Document = 18,
 	Model = 19,
 	Animation = 20,
-	Associate = 255,
 }

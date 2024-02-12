@@ -1,3 +1,5 @@
+using System.ComponentModel;
+
 namespace QsHfs;
 
 public partial class MainForm : Form
@@ -9,6 +11,7 @@ public partial class MainForm : Form
 
 	private QnHfs? _hfs = null;
 	private List<string> _history = [];
+	private bool _overrwrite = false;
 
 	public MainForm()
 	{
@@ -211,7 +214,7 @@ public partial class MainForm : Form
 
 		if (ListFiles.SelectedItems.Count == 1)
 		{
-			if (ListFiles.SelectedItems[0].Tag is not Hfs.Info file ||
+			if (ListFiles.SelectedItems[0].Tag is not Hfs.FileInfo file ||
 				file.file.IsDirectory)
 				BtnExtract.Enabled = false;
 		}
@@ -357,7 +360,7 @@ public partial class MainForm : Form
 			}
 			else
 			{
-				item.SubItems.Add(ExtensionSupp.GetTypeName(f.file.FileType));
+				item.SubItems.Add(ExtensionSupp.GetTypeName(f.file.Type));
 				item.SubItems.Add(QsSupp.ToDateTime(f.file.stc).ToString());
 				item.SubItems.Add(QsSupp.SizeString(f.file.source.size));
 				item.SubItems.Add(f.file.IsCompressed ? QsSupp.SizeString(f.file.source.cmpr) : "<압축안됨>");
@@ -424,7 +427,7 @@ public partial class MainForm : Form
 		List<string> failed = [];
 		foreach (ListViewItem item in items)
 		{
-			if (item.Tag is not Hfs.Info file)
+			if (item.Tag is not Hfs.FileInfo file)
 				continue;
 			if (_hfs.Remove(file.name) == false)
 				failed.Add(file.name);
@@ -447,7 +450,7 @@ public partial class MainForm : Form
 
 		if (items.Count == 1)
 		{
-			if (items[0].Tag is not Hfs.Info file)
+			if (items[0].Tag is not Hfs.FileInfo file)
 				return;
 			if (file.file.IsDirectory)
 			{
@@ -531,7 +534,7 @@ public partial class MainForm : Form
 		List<string> success = [];
 		foreach (ListViewItem item in items)
 		{
-			if (item.Tag is not Hfs.Info file)
+			if (item.Tag is not Hfs.FileInfo file)
 				continue;
 			if (file.file.IsDirectory)
 				continue;
@@ -557,26 +560,125 @@ public partial class MainForm : Form
 		if (_hfs == null)
 			return;
 
+		string fsdir = Directory.GetCurrentDirectory();
+		string hfsdir = _hfs.CurrentDirectory;
+
+		_overrwrite = false;
+
 		List<string> failed = [];
 		List<string> success = [];
 		foreach (var f in files)
 		{
-			if (_hfs.StoreFile(null, f) == false)
-				failed.Add(f);
+			var attr = File.GetAttributes(f);
+			if ((attr & FileAttributes.Directory) != 0)
+				AddDirectory(new DirectoryInfo(f), failed, success);
 			else
-				success.Add(f);
+				AddFile(new FileInfo(f), failed, success);
 		}
+
+		_hfs.ChDir(hfsdir);
+		Directory.SetCurrentDirectory(fsdir);
 
 		UpdateFiles();
 		if (failed.Count > 0)
 			MesgBox.ShowCenter("파일 저장", $"{failed.Count}개 파일 저장 실패", failed, MessageBoxIcon.Error);
-		MesgBox.ShowCenter("파일 저장", $"{success.Count}개 파일 저장 완료", success, MessageBoxIcon.Information);
+		if (success.Count > 0)
+			MesgBox.ShowCenter("파일 저장", $"{success.Count}개 파일 저장 완료", success, MessageBoxIcon.Information);
+	}
+
+	private bool AddFile(FileInfo fi, List<string> failed, List<string> success)
+	{
+		if (fi.Exists == false || fi.Name.StartsWith('.'))
+			return false;
+		if ((fi.Attributes & FileAttributes.Directory) != 0)
+			return false;
+		if (_hfs!.Exists(fi.Name) != Hfs.FileAttr.None)
+		{
+			if (AskOverwrite(fi.Name) == false)
+			{
+				failed.Add(fi.FullName);
+				return false;
+			}
+			_hfs!.Remove(fi.Name);
+		}
+
+		if (_hfs!.StoreFile(fi.Name, fi.FullName) == false)
+			failed.Add(fi.FullName);
+		else
+			success.Add(fi.FullName);
+		return true;
+	}
+
+	private bool AddDirectory(DirectoryInfo di, List<string> failed, List<string> success)
+	{
+		if (di.Exists == false || di.Name.StartsWith('.'))
+			return false;
+		if (_hfs!.Exists(di.Name) != Hfs.FileAttr.None)
+		{
+			if (AskOverwrite(di.Name) == false)
+			{
+				failed.Add(di.FullName);
+				return false;
+			}
+			_hfs!.Remove(di.Name);
+		}
+
+		if (_hfs!.MkDir(di.Name) == false)
+		{
+			failed.Add(di.FullName);
+			return false;
+		}
+
+		success.Add(di.FullName);
+		_hfs!.ChDir(di.Name);
+
+		FileSystemInfo[] files = di.GetFileSystemInfos();
+		if (files.Length == 0)
+		{
+			_hfs!.ChDir("..");
+			return false;
+		}
+
+		foreach (var file in files)
+		{
+			if (file is DirectoryInfo d)
+				AddDirectory(d, failed, success);
+			else if (file is FileInfo f)
+				AddFile(f, failed, success);
+		}
+
+		_hfs!.ChDir("..");
+		return true;
+	}
+
+	private bool AskOverwrite(string file)
+	{
+		if (_overrwrite)
+			return true;
+
+		var box = new MesgBox()
+		{
+			Text = "파일 저장",
+			Message = "파일이 이미 있어요. 덮어쓸까요?",
+			BoxIcon = MessageBoxIcon.Question,
+			BoxButtons = MessageBoxButtons.YesNoCancel,
+		};
+		box.AddItem(file);
+		box.SetButtons("덮어!", "모두!", "아니오");
+
+		var res = box.ShowDialog(this);
+		if (res == DialogResult.Cancel)
+			return false;
+		if (res == DialogResult.Yes)
+			return true;
+		_overrwrite = true;
+		return true;
 	}
 
 	//
 	private void OptimizeCallback(Hfs.OptimizeData data)
 	{
-		LabelInfo.Text = $"진행중... {data.FileName} ({data.Count} : {data.Stack}";
+		LabelInfo.SafeInvoke(x => x.Text = $"진행중... {data.FileName} ({data.Count} : {data.Stack}");
 		Thread.Sleep(10);
 	}
 
@@ -605,9 +707,17 @@ public partial class MainForm : Form
 
 		LabelInfo.Text = "최적화 중...";
 		LabelInfo.Visible = true;
-		Enabled = false;
+		TableMain.Enabled = false;
+
+#if false
+		Thread thd = new Thread(() => _hfs.Optimize(dlg.FileName, OptimizeCallback));
+		thd.Start();
+		thd.Join();
+#else
 		_hfs.Optimize(dlg.FileName, OptimizeCallback);
-		Enabled = true;
+#endif
+
+		TableMain.Enabled = true;
 		LabelInfo.Visible = false;
 
 		MesgBox.Show(this, "HFS 최적화", "최적화가 끝났어요!", MessageBoxIcon.Information);

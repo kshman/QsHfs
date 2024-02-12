@@ -109,6 +109,31 @@ public partial class MesgBox : Form
 		ListItems.Items.Add(mesg);
 	}
 
+	public void SetButtons(string left, string middle, string right)
+	{
+		if (string.IsNullOrEmpty(left))
+			BtnLeft.Visible = false;
+		else
+		{
+			BtnLeft.Visible = true;
+			BtnLeft.Text = left;
+		}
+		if (string.IsNullOrEmpty(middle))
+			BtnMiddle.Visible = false;
+		else
+		{
+			BtnMiddle.Visible = true;
+			BtnMiddle.Text = middle;
+		}
+		if (string.IsNullOrEmpty(right))
+			BtnRight.Visible = false;
+		else
+		{
+			BtnRight.Visible = true;
+			BtnRight.Text = right;
+		}
+	}
+
 	public new DialogResult ShowDialog()
 	{
 		if (ListItems.Items.Count == 0)

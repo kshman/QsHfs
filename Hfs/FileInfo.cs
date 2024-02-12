@@ -1,14 +1,14 @@
 ﻿namespace QsHfs.Hfs;
 
-internal class Info
+internal class FileInfo
 {
-	public FileContent file;
+	public FileData file;
 	public string name;
 	public DateTime stc;
 
-	public Info()
+	public FileInfo()
 	{
-		file = new FileContent();
+		file = new FileData();
 		name = string.Empty;
 		stc = DateTime.MinValue;
 	}
